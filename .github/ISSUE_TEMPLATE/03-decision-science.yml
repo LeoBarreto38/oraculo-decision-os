@@ -1,0 +1,30 @@
+name: Decision-science proposal
+description: Propose a scoring, forecasting, calibration or evidence-model change.
+title: "[Decision Science]: "
+body:
+  - type: textarea
+    id: claim
+    attributes:
+      label: Claim and intended use
+    validations:
+      required: true
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Mathematical or empirical rationale
+      description: Link primary literature where applicable and state assumptions.
+    validations:
+      required: true
+  - type: textarea
+    id: failure
+    attributes:
+      label: Failure modes and misuse risks
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation plan
+      description: Explain how predictions or outputs can be compared with outcomes.
+    validations:
+      required: true

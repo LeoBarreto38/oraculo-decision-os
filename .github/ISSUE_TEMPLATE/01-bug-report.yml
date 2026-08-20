@@ -1,0 +1,56 @@
+name: Bug report
+description: Report a reproducible defect without exposing private data.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: "Thanks for helping improve Oráculo. Remove secrets, personal records and database contents before submitting."
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [Installation, Backend API, Frontend UI, Decision engine, AI integration, Backup and restore, Documentation, Other]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: v0.1.0 or commit SHA
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: Windows 11 / Python 3.12 / Node 22 / browser version
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Provide the smallest sequence that reproduces the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and sanitized logs
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed API keys, personal data, databases and private exports.
+          required: true
+        - label: I searched existing Issues and troubleshooting documentation.
+          required: true

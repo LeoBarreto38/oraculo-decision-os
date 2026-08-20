@@ -1,0 +1,35 @@
+name: Feature request
+description: Propose a measurable improvement or new capability.
+title: "[Feature]: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user problem exists today? Avoid starting with a preferred implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired measurable outcome
+      description: How would we know the change worked?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed approach
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and trade-offs
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Project boundaries
+      options:
+        - label: I considered privacy, local-first operation and human confirmation.
+          required: true
+        - label: I am not presenting a heuristic score as a calibrated probability.
+          required: true

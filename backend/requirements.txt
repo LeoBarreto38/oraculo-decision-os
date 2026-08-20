@@ -1,0 +1,13 @@
+fastapi>=0.116,<1.0
+uvicorn[standard]>=0.35,<1.0
+sqlalchemy>=2.0.41,<3.0
+pydantic>=2.11,<3.0
+pydantic-settings>=2.10,<3.0
+python-dotenv>=1.1,<2.0
+openai>=1.99,<3.0
+apscheduler>=3.11,<4.0
+python-multipart>=0.0.20,<1.0
+
+# testes
+pytest>=8.4,<9.0
+httpx>=0.28,<1.0

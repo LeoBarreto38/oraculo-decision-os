@@ -1,0 +1,31 @@
+import { useState, type FormEvent } from 'react';
+import { Calendar, Edit3, Plus, Target, Trash2 } from 'lucide-react';
+import { DataModeBanner, EmptyState, Feedback, FormShell, Modal, PageHeader, ProgressBar, StatusBadge } from '../components/ui';
+import { seedGoal } from '../data/fallback';
+import { useApiResource } from '../hooks/useApiResource';
+import { api } from '../services/api';
+import { currency, formatDate } from '../utils/format';
+import type { Goal } from '../types';
+
+const emptyGoal: Omit<Goal, 'id'> = { title: '', description: '', target_value: 0, current_value: 0, unit: 'BRL', deadline: null, priority: 1, status: 'ACTIVE' };
+
+export default function GoalsPage() {
+  const resource = useApiResource(api.goals.list, [seedGoal]);
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Goal | null>(null);
+  const [form, setForm] = useState<Omit<Goal, 'id'>>(emptyGoal);
+  const [busy, setBusy] = useState(false);
+  const [feedback, setFeedback] = useState<{ kind: 'idle'|'success'|'error'; message?: string }>({kind:'idle'});
+
+  const displayValue = (value: number, unit: string) => unit.toUpperCase().includes('BRL') ? currency(value, true) : `${value.toLocaleString('pt-BR')} ${unit}`;
+  function show(goal?: Goal) { setEditing(goal || null); setForm(goal ? {...goal} : emptyGoal); setOpen(true); }
+  async function save(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setBusy(true); try { if (editing) { if (String(editing.id).startsWith('seed-')) throw new Error('Conecte a API local antes de editar o Estado Zero.'); await api.goals.update(editing.id, form); } else await api.goals.create(form); setOpen(false); setFeedback({kind:'success',message:'Meta gravada.'}); await resource.reload(); } catch(error){setFeedback({kind:'error',message:error instanceof Error?error.message:'Falha ao gravar meta.'});} finally{setBusy(false);} }
+  async function remove(goal: Goal) { if(String(goal.id).startsWith('seed-')) return setFeedback({kind:'error',message:'Conecte a API local antes de excluir dados.'}); if(!window.confirm(`Excluir a meta "${goal.title}"?`))return; try{await api.goals.remove(goal.id);await resource.reload();}catch(error){setFeedback({kind:'error',message:error instanceof Error?error.message:'Falha ao excluir meta.'});} }
+  return <div>
+    <PageHeader eyebrow="Direção" title="Metas" description="Metas conectam execução a uma mudança mensurável. Progresso sem unidade ou prazo deve ser tratado como narrativo." actions={<button className="btn-primary" onClick={()=>show()}><Plus className="h-4 w-4"/> Nova meta</button>} />
+    <DataModeBanner source={resource.source} error={resource.error} loading={resource.loading} onRetry={resource.reload}/><Feedback {...feedback}/>
+    <div className="grid gap-4 lg:grid-cols-2">{resource.data.map((goal)=><article className="panel p-5" key={goal.id}><div className="flex items-start justify-between gap-3"><div><div className="mb-2 flex items-center gap-2"><StatusBadge value={goal.status}/><span className="font-mono text-[10px] text-slate-600">PRIORIDADE {goal.priority}</span></div><h2 className="text-lg font-semibold text-slate-100">{goal.title}</h2><p className="mt-1.5 text-xs leading-5 text-slate-500">{goal.description}</p></div><div className="flex"><button className="btn-ghost p-2" onClick={()=>show(goal)} aria-label={`Editar ${goal.title}`}><Edit3 className="h-4 w-4"/></button><button className="btn-ghost p-2 hover:text-red-300" onClick={()=>void remove(goal)} aria-label={`Excluir ${goal.title}`}><Trash2 className="h-4 w-4"/></button></div></div><div className="my-5 grid grid-cols-2 gap-3"><div className="rounded-lg bg-ink-950 p-3"><p className="eyebrow">Atual</p><p className="mt-2 font-mono text-xl text-slate-200">{displayValue(goal.current_value,goal.unit)}</p></div><div className="rounded-lg bg-ink-950 p-3"><p className="eyebrow">Meta</p><p className="mt-2 font-mono text-xl text-slate-200">{displayValue(goal.target_value,goal.unit)}</p></div></div><ProgressBar value={goal.current_value} max={goal.target_value} label="Progresso"/><div className="mt-4 flex items-center gap-2 text-xs text-slate-600"><Calendar className="h-3.5 w-3.5"/> Prazo: {formatDate(goal.deadline)}</div></article>)}</div>
+    {!resource.data.length&&<div className="panel"><EmptyState title="Nenhuma meta ativa" description="Registre uma meta com valor atual, alvo e unidade."/></div>}
+    <Modal open={open} onClose={()=>setOpen(false)} title={editing?'Editar meta':'Registrar meta'}><FormShell onSubmit={save} busy={busy} submitLabel="Salvar meta" onCancel={()=>setOpen(false)}><label><span className="label">Título</span><input className="input" required value={form.title} onChange={(e)=>setForm(v=>({...v,title:e.target.value}))}/></label><label><span className="label">Descrição</span><textarea className="input min-h-20" value={form.description} onChange={(e)=>setForm(v=>({...v,description:e.target.value}))}/></label><div className="grid gap-4 sm:grid-cols-3"><label><span className="label">Valor atual</span><input className="input" type="number" step="0.01" value={form.current_value} onChange={(e)=>setForm(v=>({...v,current_value:Number(e.target.value)}))}/></label><label><span className="label">Valor-alvo</span><input className="input" required type="number" step="0.01" value={form.target_value} onChange={(e)=>setForm(v=>({...v,target_value:Number(e.target.value)}))}/></label><label><span className="label">Unidade</span><input className="input" required value={form.unit} onChange={(e)=>setForm(v=>({...v,unit:e.target.value}))}/></label></div><div className="grid gap-4 sm:grid-cols-3"><label><span className="label">Prazo</span><input className="input" type="date" value={form.deadline||''} onChange={(e)=>setForm(v=>({...v,deadline:e.target.value||null}))}/></label><label><span className="label">Prioridade</span><input className="input" type="number" min="1" max="5" value={form.priority} onChange={(e)=>setForm(v=>({...v,priority:Number(e.target.value)}))}/></label><label><span className="label">Estado</span><select className="input" value={form.status} onChange={(e)=>setForm(v=>({...v,status:e.target.value}))}><option>ACTIVE</option><option>PAUSED</option><option>COMPLETED</option><option>INVALIDATED</option></select></label></div></FormShell></Modal>
+  </div>;
+}
